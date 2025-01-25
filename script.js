@@ -1,3 +1,11 @@
+const DEBUG = true;
+
+function log(...args) {
+    if (DEBUG) {
+        console.log(...args);
+    }
+}
+
 let socket;
 let userId; // Lưu trữ ID của người dùng hiện tại
 const chatMessages = document.getElementById('chatMessages');
@@ -32,19 +40,13 @@ const configuration = {
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
         {
-            urls: 'turn:openrelay.metered.ca:80',
-            username: 'openrelayproject',
-            credential: 'openrelayproject'
-        },
-        {
-            urls: 'turn:openrelay.metered.ca:443',
-            username: 'openrelayproject',
-            credential: 'openrelayproject'
-        },
-        {
-            urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-            username: 'openrelayproject',
-            credential: 'openrelayproject'
+            urls: [
+                'turn:relay1.metered.ca:80',
+                'turn:relay1.metered.ca:443',
+                'turn:relay1.metered.ca:443?transport=tcp'
+            ],
+            username: 'e899a0e2c2a5bbb5f7e4c589',
+            credential: 'pCZkBe/7EwXsLVUX'
         }
     ],
     iceCandidatePoolSize: 10
@@ -58,13 +60,17 @@ async function initializeMedia() {
             audio: true
         });
         localVideo.srcObject = localStream;
+        console.log('Media stream initialized:', localStream.getTracks());
 
         // Thêm event listeners cho các nút điều khiển
         toggleVideoBtn.addEventListener('click', toggleVideo);
         toggleAudioBtn.addEventListener('click', toggleAudio);
+
+        return true;
     } catch (e) {
         console.error('Lỗi khi truy cập camera:', e);
-        addSystemMessage('Không thể truy cập camera hoặc microphone');
+        addSystemMessage('Không thể truy cập camera hoặc microphone. Lỗi: ' + e.message);
+        return false;
     }
 }
 
@@ -86,20 +92,6 @@ function toggleAudio() {
 
 // Khởi tạo kết nối WebRTC
 async function initializePeerConnection() {
-    // Lấy thông tin TURN server
-    const turnCredentials = await getTurnCredentials();
-    
-    const configuration = {
-        iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' }
-        ]
-    };
-
-    if (turnCredentials) {
-        configuration.iceServers.push(turnCredentials);
-    }
-
     peerConnection = new RTCPeerConnection(configuration);
 
     // Thêm local stream
@@ -109,7 +101,9 @@ async function initializePeerConnection() {
 
     // Xử lý remote stream
     peerConnection.ontrack = event => {
-        remoteVideo.srcObject = event.streams[0];
+        if (event.streams && event.streams[0]) {
+            remoteVideo.srcObject = event.streams[0];
+        }
     };
 
     // Xử lý ICE candidates
@@ -125,22 +119,41 @@ async function initializePeerConnection() {
         }
     };
 
+    // Log trạng thái kết nối ICE
     peerConnection.oniceconnectionstatechange = () => {
         console.log('ICE connection state:', peerConnection.iceConnectionState);
         switch(peerConnection.iceConnectionState) {
+            case 'checking':
+                addSystemMessage('Đang thiết lập kết nối video...');
+                break;
+            case 'connected':
+                addSystemMessage('Kết nối video thành công!');
+                break;
             case 'failed':
-                console.error('ICE connection failed');
-                addSystemMessage('Kết nối video thất bại. Thử lại...');
+                addSystemMessage('Kết nối video thất bại. Đang thử lại...');
                 restartIce();
                 break;
             case 'disconnected':
-                console.warn('ICE connection disconnected');
-                addSystemMessage('Kết nối video bị gián đoạn. Đang thử kết nối lại...');
+                addSystemMessage('Kết nối video bị gián đoạn. Đang kết nối lại...');
                 break;
-            case 'connected':
-                console.log('ICE connection established');
-                addSystemMessage('Kết nối video thành công!');
-                break;
+        }
+    };
+
+    // Log các sự kiện negotiation
+    peerConnection.onnegotiationneeded = async () => {
+        console.log('Negotiation needed');
+        try {
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+            socket.send(JSON.stringify({
+                type: 'webrtc',
+                webrtcData: {
+                    type: 'offer',
+                    offer: peerConnection.localDescription
+                }
+            }));
+        } catch (e) {
+            console.error('Error during negotiation:', e);
         }
     };
 }
@@ -215,21 +228,25 @@ function connectWebSocket() {
     updateConnectionStatus('connecting');
     // Tự động xác định WebSocket URL dựa trên current host
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}`;
+    const host = window.location.hostname === 'localhost' ? 
+        `${window.location.hostname}:3000` : 
+        window.location.host;
+    const wsUrl = `${protocol}//${host}`;
     socket = new WebSocket(wsUrl);
     
-    socket.onopen = () => {
+    socket.onopen = async () => {
         console.log('Đã kết nối với máy chủ');
         updateConnectionStatus('waiting');
-        initializeMedia().then(() => {
+        const mediaInitialized = await initializeMedia();
+        if (mediaInitialized) {
             initializePeerConnection();
-        });
+        }
     };
     
     socket.onmessage = async (event) => {
         try {
             const message = JSON.parse(event.data);
-            console.log('Nhận tin nhắn:', message);
+            log('Nhận tin nhắn:', message);
             
             if (message.type === 'userId') {
                 userId = message.userId;
@@ -249,6 +266,7 @@ function connectWebSocket() {
                 };
                 currentUserIdDisplay.appendChild(copyButton);
             } else if (message.type === 'webrtc') {
+                log('WebRTC message:', message.webrtcData);
                 const webrtcData = message.webrtcData;
                 
                 if (webrtcData.type === 'offer') {
@@ -293,7 +311,7 @@ function connectWebSocket() {
                 addMessage(message.text, 'received');
             }
         } catch (e) {
-            console.error('Lỗi khi xử lý tin nhắn:', e);
+            console.error('Lỗi:', e);
         }
     };
     

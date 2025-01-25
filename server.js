@@ -4,7 +4,7 @@ const path = require('path');
 const twilio = require('twilio');
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000;
 
 // Phục vụ static files
 app.use(express.static(path.join(__dirname, './')));
@@ -160,6 +160,10 @@ wss.on('connection', (socket) => {
 
             const partner = activeConnections.get(socket);
             if (partner && isSocketAlive(partner)) {
+                // Chuyển tiếp tin nhắn WebRTC ngay lập tức
+                if (parsedMessage.type === 'webrtc') {
+                    console.log('Chuyển tiếp tin nhắn WebRTC:', parsedMessage.webrtcData.type);
+                }
                 safeSend(partner, parsedMessage);
             }
         } catch (e) {
