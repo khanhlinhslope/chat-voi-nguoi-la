@@ -59,8 +59,9 @@ async function initializeMedia() {
             video: true,
             audio: true
         });
+        console.log('Got local stream:', localStream.getTracks());
         localVideo.srcObject = localStream;
-        console.log('Media stream initialized:', localStream.getTracks());
+        await localVideo.play().catch(e => console.error('Error playing local video:', e));
 
         // Thêm event listeners cho các nút điều khiển
         toggleVideoBtn.addEventListener('click', toggleVideo);
@@ -96,19 +97,25 @@ async function initializePeerConnection() {
 
     // Thêm local stream
     localStream.getTracks().forEach(track => {
+        console.log('Adding local track:', track.kind);
         peerConnection.addTrack(track, localStream);
     });
 
     // Xử lý remote stream
     peerConnection.ontrack = event => {
+        console.log('Received remote track:', event.track.kind);
         if (event.streams && event.streams[0]) {
+            console.log('Setting remote stream');
             remoteVideo.srcObject = event.streams[0];
+            // Tự động phát khi nhận được stream
+            remoteVideo.play().catch(e => console.error('Error playing remote video:', e));
         }
     };
 
     // Xử lý ICE candidates
     peerConnection.onicecandidate = event => {
         if (event.candidate) {
+            console.log('Sending ICE candidate');
             socket.send(JSON.stringify({
                 type: 'webrtc',
                 webrtcData: {
@@ -128,6 +135,10 @@ async function initializePeerConnection() {
                 break;
             case 'connected':
                 addSystemMessage('Kết nối video thành công!');
+                // Đảm bảo remote video được phát
+                if (remoteVideo.srcObject && remoteVideo.paused) {
+                    remoteVideo.play().catch(e => console.error('Error playing remote video:', e));
+                }
                 break;
             case 'failed':
                 addSystemMessage('Kết nối video thất bại. Đang thử lại...');
@@ -139,12 +150,17 @@ async function initializePeerConnection() {
         }
     };
 
-    // Log các sự kiện negotiation
+    // Xử lý negotiation
     peerConnection.onnegotiationneeded = async () => {
-        console.log('Negotiation needed');
         try {
-            const offer = await peerConnection.createOffer();
+            console.log('Creating offer...');
+            const offer = await peerConnection.createOffer({
+                offerToReceiveAudio: true,
+                offerToReceiveVideo: true
+            });
+            console.log('Setting local description...');
             await peerConnection.setLocalDescription(offer);
+            console.log('Sending offer...');
             socket.send(JSON.stringify({
                 type: 'webrtc',
                 webrtcData: {
@@ -270,8 +286,12 @@ function connectWebSocket() {
                 const webrtcData = message.webrtcData;
                 
                 if (webrtcData.type === 'offer') {
+                    console.log('Received offer. Creating answer...');
                     await peerConnection.setRemoteDescription(new RTCSessionDescription(webrtcData.offer));
-                    const answer = await peerConnection.createAnswer();
+                    const answer = await peerConnection.createAnswer({
+                        offerToReceiveAudio: true,
+                        offerToReceiveVideo: true
+                    });
                     await peerConnection.setLocalDescription(answer);
                     
                     socket.send(JSON.stringify({
@@ -282,9 +302,15 @@ function connectWebSocket() {
                         }
                     }));
                 } else if (webrtcData.type === 'answer') {
+                    console.log('Received answer');
                     await peerConnection.setRemoteDescription(new RTCSessionDescription(webrtcData.answer));
                 } else if (webrtcData.type === 'candidate') {
-                    await peerConnection.addIceCandidate(new RTCIceCandidate(webrtcData.candidate));
+                    console.log('Received ICE candidate');
+                    try {
+                        await peerConnection.addIceCandidate(new RTCIceCandidate(webrtcData.candidate));
+                    } catch (e) {
+                        console.error('Error adding received ICE candidate:', e);
+                    }
                 }
             } else if (message.type === 'system') {
                 addSystemMessage(message.text);
@@ -311,7 +337,7 @@ function connectWebSocket() {
                 addMessage(message.text, 'received');
             }
         } catch (e) {
-            console.error('Lỗi:', e);
+            console.error('Error handling message:', e);
         }
     };
     
