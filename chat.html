@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Ngẫu Nhiên - Phòng Chat</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-comments"></i>
+                <h1>Chat Ngẫu Nhiên</h1>
+            </div>
+            <div class="user-status">
+                <span class="status-indicator"></span>
+                <span class="status-text">Đang kết nối...</span>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="video-container">
+                <div class="video-wrapper local">
+                    <video id="localVideo" autoplay playsinline muted></video>
+                    <div class="video-overlay">
+                        <span class="video-label">Bạn</span>
+                    </div>
+                </div>
+                <div class="video-wrapper remote">
+                    <video id="remoteVideo" autoplay playsinline></video>
+                    <div class="video-overlay">
+                        <span class="video-label">Người lạ</span>
+                    </div>
+                </div>
+                <div class="video-controls">
+                    <button id="toggleVideo" class="control-btn">
+                        <i class="fas fa-video"></i>
+                    </button>
+                    <button id="toggleAudio" class="control-btn">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <button id="toggleFullscreen" class="control-btn">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="chat-container" id="chatContainer">
+                <div class="chat-header">
+                    <div class="chat-info">
+                        <span id="currentUserId" class="user-id">ID: ...</span>
+                        <div class="connect-form">
+                            <input type="text" id="targetIdInput" placeholder="Nhập ID người muốn kết nối">
+                            <button id="connectToId">
+                                <i class="fas fa-link"></i> Kết nối
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="welcome-message">
+                        <i class="fas fa-hand-wave"></i>
+                        <p>Chào mừng bạn đến với Chat Ngẫu Nhiên!</p>
+                    </div>
+                </div>
+                
+                <div class="chat-input">
+                    <div class="input-wrapper">
+                        <input type="text" id="messageInput" placeholder="Nhập tin nhắn...">
+                        <button id="sendButton">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <button id="nextButton" class="next-button">
+                        <i class="fas fa-random"></i> Người tiếp theo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 

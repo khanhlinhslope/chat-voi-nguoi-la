@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Ngẫu Nhiên - Trang Chủ</title>
+    <link rel="stylesheet" href="home.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-comments"></i>
+                <h1>Chat Ngẫu Nhiên</h1>
+            </div>
+            <p class="subtitle">Kết nối và trò chuyện với người lạ</p>
+        </header>
+
+        <main>
+            <section class="intro">
+                <h2><i class="fas fa-info-circle"></i> Giới thiệu</h2>
+                <p>Chat Ngẫu Nhiên là nơi bạn có thể kết nối và trò chuyện với những người lạ từ khắp nơi. 
+                   Hãy tạo những cuộc trò chuyện thú vị và kết bạn mới!</p>
+                <div class="features">
+                    <div class="feature-item">
+                        <i class="fas fa-video"></i>
+                        <span>Chat Video</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-comment-dots"></i>
+                        <span>Nhắn tin</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-user-shield"></i>
+                        <span>An toàn</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="terms">
+                <h2><i class="fas fa-clipboard-check"></i> Điều khoản sử dụng</h2>
+                <div class="term-item">
+                    <input type="checkbox" id="term1">
+                    <label for="term1"><i class="fas fa-user-check"></i> Tôi từ 18 tuổi trở lên</label>
+                </div>
+                <div class="term-item">
+                    <input type="checkbox" id="term2">
+                    <label for="term2"><i class="fas fa-user-secret"></i> Tôi sẽ không chia sẻ thông tin cá nhân nhạy cảm</label>
+                </div>
+                <div class="term-item">
+                    <input type="checkbox" id="term3">
+                    <label for="term3"><i class="fas fa-shield-alt"></i> Tôi sẽ không gửi nội dung không phù hợp hoặc quấy rối</label>
+                </div>
+                <div class="term-item">
+                    <input type="checkbox" id="term4">
+                    <label for="term4"><i class="fas fa-file-contract"></i> Tôi đồng ý với các <a href="#" class="terms-link">điều khoản dịch vụ</a></label>
+                </div>
+            </section>
+
+            <section class="guidelines">
+                <h2><i class="fas fa-exclamation-triangle"></i> Hướng dẫn an toàn</h2>
+                <ul>
+                    <li><i class="fas fa-user-lock"></i> Không chia sẻ thông tin cá nhân</li>
+                    <li><i class="fas fa-heart"></i> Tôn trọng người khác</li>
+                    <li><i class="fas fa-flag"></i> Báo cáo hành vi không phù hợp</li>
+                    <li><i class="fas fa-image"></i> Cẩn thận khi chia sẻ hình ảnh</li>
+                </ul>
+            </section>
+
+            <button id="startChat" class="start-button" disabled>
+                <i class="fas fa-play"></i> Bắt đầu chat
+            </button>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 Chat Ngẫu Nhiên. Tất cả quyền được bảo lưu.</p>
+        </footer>
+    </div>
+
+    <!-- Modal điều khoản -->
+    <div id="termsModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Điều khoản dịch vụ</h2>
+            <div class="modal-body">
+                <!-- Nội dung điều khoản chi tiết -->
+            </div>
+        </div>
+    </div>
+
+    <script src="home.js"></script>
+</body>
+</html> 
