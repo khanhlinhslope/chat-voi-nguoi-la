@@ -157,7 +157,11 @@ async function initializePeerConnection() {
                 addSystemMessage('Setting up video connection...');
                 break;
             case 'connected':
+<<<<<<< HEAD
                 addSystemMessage('Video connection successful!');
+=======
+                addSystemMessage('Kết nối video thành công!');
+>>>>>>> e9af274bd182ec2afc2da549824253444932b65f
                 // Đảm bảo remote video được phát
                 if (remoteVideo.srcObject && remoteVideo.paused) {
                     remoteVideo.play().catch(e => console.error('Error playing remote video:', e));
@@ -477,6 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Kết nối WebSocket
     connectWebSocket();
+<<<<<<< HEAD
 
     // Thêm event listener cho nút auto connect
     const autoConnectBtn = document.getElementById('autoConnectBtn');
@@ -561,3 +566,6 @@ blockButton.addEventListener('click', () => {
     addSystemMessage(`User ${currentPartnerId} has been blocked`);
     findNewPartner();
 }); 
+=======
+}); 
+>>>>>>> e9af274bd182ec2afc2da549824253444932b65f
