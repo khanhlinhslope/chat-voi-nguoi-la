@@ -31,14 +31,6 @@ let isAutoConnecting = false;
 // Thêm biến để theo dõi thời gian kết nối
 let lastConnectionTime = 0;
 
-// Thêm biến cho report và block
-let reportModal = document.getElementById('reportModal');
-let reportButton = document.getElementById('reportButton');
-let blockButton = document.getElementById('blockButton');
-let submitReport = document.getElementById('submitReport');
-let closeReportModal = reportModal.querySelector('.close');
-let blockedUsers = new Set(JSON.parse(localStorage.getItem('blockedUsers') || '[]'));
-
 // Thêm hàm lấy thông tin TURN server từ Twilio
 async function getTurnCredentials() {
     try {
@@ -245,11 +237,13 @@ function connectWebSocket() {
     socket = new WebSocket(wsUrl);
     
     socket.onopen = async () => {
-        console.log('Đã kết nối với máy chủ');
+        console.log('Connected to server');
         updateConnectionStatus('waiting');
-        const mediaInitialized = await initializeMedia();
-        if (mediaInitialized && chatMode === 'video') {
-            initializePeerConnection();
+        if (chatMode === 'video') {
+            const mediaInitialized = await initializeMedia();
+            if (mediaInitialized) {
+                await initializePeerConnection();
+            }
         }
     };
     
@@ -499,65 +493,18 @@ document.querySelector('.logo').addEventListener('click', () => {
 function findNewPartner() {
     if (peerConnection) {
         peerConnection.close();
+        peerConnection = null;
     }
     if (socket && socket.readyState === WebSocket.OPEN) {
         socket.close();
     }
     chatMessages.innerHTML = '';
-    remoteVideo.srcObject = null;
+    if (remoteVideo.srcObject) {
+        const tracks = remoteVideo.srcObject.getTracks();
+        tracks.forEach(track => track.stop());
+        remoteVideo.srcObject = null;
+    }
     updateConnectionStatus('connecting');
-    addSystemMessage(isAutoConnecting ? 'Auto searching for a new stranger...' : 'Looking for a stranger...');
+    addSystemMessage(isAutoConnecting ? 'Auto searching...' : 'Looking for a stranger...');
     connectWebSocket();
-}
-
-// Xử lý report
-reportButton.addEventListener('click', () => {
-    if (!currentPartnerId) {
-        addSystemMessage('No user to report');
-        return;
-    }
-    reportModal.style.display = 'block';
-});
-
-closeReportModal.addEventListener('click', () => {
-    reportModal.style.display = 'none';
-});
-
-submitReport.addEventListener('click', () => {
-    const reason = document.querySelector('input[name="reportReason"]:checked')?.value;
-    const description = document.getElementById('reportDescription').value;
-    
-    if (!reason) {
-        alert('Please select a reason for reporting');
-        return;
-    }
-
-    // Gửi report lên server
-    socket.send(JSON.stringify({
-        type: 'report',
-        reportData: {
-            targetId: currentPartnerId,
-            reason: reason,
-            description: description
-        }
-    }));
-
-    addSystemMessage('Report submitted. Thank you for helping keep our community safe.');
-    reportModal.style.display = 'none';
-    
-    // Tự động next sau khi report
-    findNewPartner();
-});
-
-// Xử lý block
-blockButton.addEventListener('click', () => {
-    if (!currentPartnerId) {
-        addSystemMessage('No user to block');
-        return;
-    }
-
-    blockedUsers.add(currentPartnerId);
-    localStorage.setItem('blockedUsers', JSON.stringify([...blockedUsers]));
-    addSystemMessage(`User ${currentPartnerId} has been blocked`);
-    findNewPartner();
-}); 
+} 
