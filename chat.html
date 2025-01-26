@@ -1,14 +1,18 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0084ff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Chat Ngẫu Nhiên - Phòng Chat</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="chat.css">
 </head>
 <body>
-    <div class="container">
+    <div class="container mobile-optimized">
         <div class="header">
             <div class="header-left">
                 <img src="images/logo-omegle.png" alt="Omegle Logo" class="logo-image">
@@ -48,9 +52,6 @@
                     <button id="toggleAudio" class="control-btn">
                         <i class="fas fa-microphone"></i>
                     </button>
-                    <button id="toggleFullscreen" class="control-btn">
-                        <i class="fas fa-expand"></i>
-                    </button>
                 </div>
             </div>
             
@@ -62,19 +63,19 @@
                     </div>
                 </div>
                 
-                <div class="chat-input">
+                <div class="chat-input mobile-friendly">
                     <div class="input-wrapper">
-                        <input type="text" id="messageInput" placeholder="Type a message...">
-                        <button id="sendButton">
+                        <input type="text" id="messageInput" placeholder="Type a message..." class="mobile-input">
+                        <button id="sendButton" class="mobile-button">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
-                    <div class="chat-controls">
-                        <button id="autoConnectBtn" class="control-button">
+                    <div class="chat-controls mobile-controls">
+                        <button id="autoConnectBtn" class="control-button mobile-button">
                             <i class="fas fa-sync"></i> Auto Connect
                             <span class="status-badge">Off</span>
                         </button>
-                        <button id="nextButton" class="next-button">
+                        <button id="nextButton" class="next-button mobile-button">
                             <i class="fas fa-random"></i> Next Stranger
                         </button>
                     </div>
@@ -82,7 +83,6 @@
             </div>
         </div>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html> 

@@ -31,6 +31,9 @@ let isAutoConnecting = false;
 // Thêm biến để theo dõi thời gian kết nối
 let lastConnectionTime = 0;
 
+// Thêm biến để theo dõi thời gian cuối cùng nhấn nút
+let lastTap = 0;
+
 // Thêm hàm lấy thông tin TURN server từ Twilio
 async function getTurnCredentials() {
     try {
@@ -232,18 +235,19 @@ function updateConnectionStatus(status) {
 // Cập nhật hàm connectWebSocket
 function connectWebSocket() {
     updateConnectionStatus('connecting');
-    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-    const wsUrl = `${protocol}${window.location.host}`;
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.hostname === 'localhost' ? 
+        `${window.location.hostname}:3000` : 
+        window.location.host;
+    const wsUrl = `${protocol}//${host}`;
     socket = new WebSocket(wsUrl);
     
     socket.onopen = async () => {
-        console.log('Connected to server');
+        console.log('Đã kết nối với máy chủ');
         updateConnectionStatus('waiting');
-        if (chatMode === 'video') {
-            const mediaInitialized = await initializeMedia();
-            if (mediaInitialized) {
-                await initializePeerConnection();
-            }
+        const mediaInitialized = await initializeMedia();
+        if (mediaInitialized && chatMode === 'video') {
+            initializePeerConnection();
         }
     };
     
@@ -323,14 +327,6 @@ function connectWebSocket() {
                 }
             } else if (message.type === 'message') {
                 addMessage(message.text, 'received');
-            } else if (message.type === 'connected') {
-                const partnerId = message.partnerId;
-                if (blockedUsers.has(partnerId)) {
-                    addSystemMessage('Blocked user detected. Finding new partner...');
-                    findNewPartner();
-                    return;
-                }
-                currentPartnerId = partnerId;
             }
         } catch (e) {
             console.error('Error handling message:', e);
@@ -482,6 +478,34 @@ document.addEventListener('DOMContentLoaded', () => {
             clearInterval(autoConnectInterval);
         }
     });
+
+    // Prevent double-tap zoom
+    document.addEventListener('touchend', (e) => {
+        const now = Date.now();
+        const DOUBLE_TAP_DELAY = 300;
+        if (now - lastTap < DOUBLE_TAP_DELAY) {
+            e.preventDefault();
+        }
+        lastTap = now;
+    });
+
+    // Improve button touch response
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(button => {
+        button.addEventListener('touchstart', () => {
+            button.classList.add('button-active');
+        });
+        button.addEventListener('touchend', () => {
+            button.classList.remove('button-active');
+        });
+    });
+
+    // Add pull-to-refresh prevention
+    document.body.addEventListener('touchmove', (e) => {
+        if (window.pageYOffset === 0) {
+            e.preventDefault();
+        }
+    }, { passive: false });
 });
 
 // Thêm vào cuối file script.js
@@ -493,18 +517,13 @@ document.querySelector('.logo').addEventListener('click', () => {
 function findNewPartner() {
     if (peerConnection) {
         peerConnection.close();
-        peerConnection = null;
     }
     if (socket && socket.readyState === WebSocket.OPEN) {
         socket.close();
     }
     chatMessages.innerHTML = '';
-    if (remoteVideo.srcObject) {
-        const tracks = remoteVideo.srcObject.getTracks();
-        tracks.forEach(track => track.stop());
-        remoteVideo.srcObject = null;
-    }
+    remoteVideo.srcObject = null;
     updateConnectionStatus('connecting');
-    addSystemMessage(isAutoConnecting ? 'Auto searching...' : 'Looking for a stranger...');
+    addSystemMessage(isAutoConnecting ? 'Auto searching for a new stranger...' : 'Looking for a stranger...');
     connectWebSocket();
 } 

@@ -1,0 +1,165 @@
+:root {
+    --primary-color: #3ca8ff;
+    --primary-hover: #2b96eb;
+    --primary-light: rgba(60, 168, 255, 0.1);
+    --background-color: #f0f2f5;
+    --text-color: #333;
+    --light-text: #666;
+    --border-radius: 10px;
+    --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Button styles */
+.next-button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 20px;
+    background: var(--primary-color);
+    color: white;
+    font-size: 1.1em;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.next-button:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(60, 168, 255, 0.3);
+}
+
+.next-button i {
+    font-size: 1.2em;
+}
+
+.next-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Control buttons */
+.control-button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 15px;
+    background: var(--primary-color);
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.control-button:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+}
+
+.control-button i {
+    font-size: 1.1em;
+}
+
+/* Stop button */
+.stop-button {
+    background: #ff4d4d;
+}
+
+.stop-button:hover {
+    background: #ff3333;
+}
+
+/* Send button styles */
+#sendButton {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 15px;
+    background: var(--primary-color);
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    min-width: 45px;
+    height: 40px;
+}
+
+#sendButton i {
+    font-size: 1.1em;
+    line-height: 1;
+}
+
+#sendButton:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+}
+
+/* Input wrapper styles */
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#messageInput {
+    flex: 1;
+    padding: 10px 15px;
+    border: 2px solid var(--primary-light);
+    border-radius: 15px;
+    font-size: 1em;
+    transition: all 0.3s ease;
+}
+
+#messageInput:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+/* Loading states */
+.loading-spinner {
+    color: var(--primary-color);
+}
+
+/* Message bubbles */
+.message {
+    padding: 10px 15px;
+    border-radius: 15px;
+    max-width: 80%;
+    margin: 8px 0;
+}
+
+.message.sent {
+    background: var(--primary-color);
+    color: white;
+    margin-left: auto;
+}
+
+.message.received {
+    background: #f0f2f5;
+    color: var(--text-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .next-button {
+        padding: 12px;
+        font-size: 1em;
+    }
+
+    .control-button, #sendButton {
+        padding: 8px 12px;
+        min-width: 40px;
+        height: 36px;
+    }
+} 

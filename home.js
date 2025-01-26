@@ -1,89 +1,113 @@
 document.addEventListener('DOMContentLoaded', () => {
     const videoButton = document.getElementById('startVideoChat');
     const textButton = document.getElementById('startTextChat');
-    const checkboxes = document.querySelectorAll('.term-item input[type="checkbox"]');
-    const modal = document.getElementById('termsModal');
-    const closeBtn = document.querySelector('.close');
+    const termsPopup = document.getElementById('termsPopup');
+    const acceptTermsBtn = document.getElementById('acceptTerms');
+    const cancelTermsBtn = document.getElementById('cancelTerms');
+    const popupCheckboxes = document.querySelectorAll('.terms-popup .term-item input[type="checkbox"]');
     const termsLink = document.querySelector('.terms-link');
+    const privacyLink = document.querySelector('.privacy-link');
     
     // Thêm animation cho các section
     document.querySelectorAll('section').forEach((section, index) => {
         section.style.animationDelay = `${index * 0.1}s`;
     });
 
-    // Kiểm tra trạng thái các checkbox
-    function checkTerms() {
-        const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
-        videoButton.disabled = !allChecked;
-        textButton.disabled = !allChecked;
-        
-        if (allChecked) {
-            videoButton.classList.add('ready');
-            textButton.classList.add('ready');
-        } else {
-            videoButton.classList.remove('ready');
-            textButton.classList.remove('ready');
-        }
+    // Enable buttons by default
+    videoButton.disabled = false;
+    textButton.disabled = false;
+    videoButton.classList.add('ready');
+    textButton.classList.add('ready');
+
+    let currentChatMode = ''; // Biến để lưu loại chat được chọn
+
+    // Xử lý khi nhấn nút video chat
+    videoButton.addEventListener('click', () => {
+        currentChatMode = 'video';
+        showTermsPopup();
+    });
+
+    // Xử lý khi nhấn nút text chat
+    textButton.addEventListener('click', () => {
+        currentChatMode = 'text';
+        showTermsPopup();
+    });
+
+    // Hàm hiển thị popup
+    function showTermsPopup() {
+        termsPopup.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        // Reset checkboxes khi mở popup
+        popupCheckboxes.forEach(checkbox => checkbox.checked = false);
+        acceptTermsBtn.disabled = true;
     }
 
-    // Thêm event listener cho các checkbox với animation
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', (e) => {
-            const label = e.target.parentElement;
-            if (e.target.checked) {
-                label.style.animation = 'checkmark 0.2s ease-in-out';
-            }
-            checkTerms();
-        });
+    // Hàm đóng popup và reset form
+    function closePopup() {
+        termsPopup.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        popupCheckboxes.forEach(checkbox => checkbox.checked = false);
+        acceptTermsBtn.disabled = true;
+        currentChatMode = ''; // Reset chat mode
+    }
+
+    // Xử lý khi nhấn cancel
+    cancelTermsBtn.addEventListener('click', () => {
+        closePopup();
     });
 
-    // Xử lý khi nhấn nút chat video
-    videoButton.addEventListener('click', () => {
-        localStorage.setItem('termsAccepted', 'true');
-        localStorage.setItem('chatMode', 'video');
-        startChat(videoButton);
+    // Kiểm tra trạng thái checkboxes trong popup
+    function checkPopupTerms() {
+        const allChecked = Array.from(popupCheckboxes).every(checkbox => checkbox.checked);
+        acceptTermsBtn.disabled = !allChecked;
+    }
+
+    // Thêm event listener cho các checkbox trong popup
+    popupCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', checkPopupTerms);
     });
 
-    // Xử lý khi nhấn nút chat text
-    textButton.addEventListener('click', () => {
+    // Xử lý khi nhấn accept
+    acceptTermsBtn.addEventListener('click', () => {
         localStorage.setItem('termsAccepted', 'true');
-        localStorage.setItem('chatMode', 'text');
-        startChat(textButton);
+        localStorage.setItem('chatMode', currentChatMode);
+        closePopup();
+        startChat(currentChatMode === 'video' ? videoButton : textButton);
+    });
+
+    // Close popup when clicking outside
+    termsPopup.addEventListener('click', (e) => {
+        if (e.target === termsPopup) {
+            closePopup();
+        }
     });
 
     function startChat(button) {
-        const originalHTML = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redirecting...';
+        // Hiển thị loading overlay
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        loadingOverlay.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+
+        // Disable button
+        button.disabled = true;
+
+        // Redirect sau 1 giây
         setTimeout(() => {
+            loadingOverlay.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            button.disabled = false;
             window.location.href = './chat.html';
         }, 1000);
     }
 
-    // Modal điều khoản
-    termsLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        window.location.href = 'terms.html';
+    // Xử lý các liên kết terms và privacy
+    termsLink.addEventListener('click', () => {
+        localStorage.setItem('lastPage', window.location.href);
     });
 
-    closeBtn.addEventListener('click', () => {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
+    privacyLink.addEventListener('click', () => {
+        localStorage.setItem('lastPage', window.location.href);
     });
-
-    window.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-    });
-
-    // Kiểm tra nếu đã đồng ý điều khoản trước đó
-    if (localStorage.getItem('termsAccepted') === 'true') {
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = true;
-        });
-        checkTerms();
-    }
 
     // Thêm hiệu ứng hover cho các feature items
     document.querySelectorAll('.feature-item').forEach(item => {
