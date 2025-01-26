@@ -1,9 +1,33 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Ngẫu Nhiên - Trang Chủ</title>
+    <title>Omegle - Talk to Strangers | Random Video Chat</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Omegle - Free random video chat with strangers worldwide. Meet new friends, have fun conversations, and connect with people from around the globe instantly.">
+    <meta name="keywords" content="omegle, video chat, random chat, talk to strangers, online chat, free chat">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Omegle - Talk to Strangers | Random Video Chat">
+    <meta property="og:description" content="Free random video chat with strangers worldwide. Meet new friends instantly on Omegle.">
+    <meta property="og:image" content="images/logo-omegle.png">
+    <meta property="og:url" content="https://your-domain.com">
+    <meta property="og:type" content="website">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Omegle - Talk to Strangers">
+    <meta name="twitter:description" content="Free random video chat with strangers worldwide">
+    <meta name="twitter:image" content="images/logo-omegle.png">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://your-domain.com">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    
     <link rel="stylesheet" href="home.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -11,70 +35,86 @@
     <div class="container">
         <header>
             <div class="logo">
-                <i class="fas fa-comments"></i>
-                <h1>Chat Ngẫu Nhiên</h1>
+                <img src="images/logo-omegle.png" alt="Omegle - Random Video Chat" class="logo-image">
             </div>
-            <p class="subtitle">Kết nối và trò chuyện với người lạ</p>
+            <h1>Omegle - Talk to Strangers</h1>
+            <p class="subtitle">Connect and Chat with Strangers from Around the World</p>
         </header>
 
         <main>
             <section class="intro">
-                <h2><i class="fas fa-info-circle"></i> Giới thiệu</h2>
-                <p>Chat Ngẫu Nhiên là nơi bạn có thể kết nối và trò chuyện với những người lạ từ khắp nơi. 
-                   Hãy tạo những cuộc trò chuyện thú vị và kết bạn mới!</p>
+                <h2><i class="fas fa-info-circle"></i> Welcome to Omegle</h2>
+                <p>Omegle is the premier platform where you can meet and chat with strangers from around the world. 
+                   Start random video chats, create meaningful conversations, and make new friends instantly!</p>
                 <div class="features">
                     <div class="feature-item">
                         <i class="fas fa-video"></i>
-                        <span>Chat Video</span>
+                        <span>Video Chat</span>
                     </div>
                     <div class="feature-item">
                         <i class="fas fa-comment-dots"></i>
-                        <span>Nhắn tin</span>
+                        <span>Text Chat</span>
                     </div>
                     <div class="feature-item">
                         <i class="fas fa-user-shield"></i>
-                        <span>An toàn</span>
+                        <span>Safe</span>
                     </div>
                 </div>
             </section>
 
             <section class="terms">
-                <h2><i class="fas fa-clipboard-check"></i> Điều khoản sử dụng</h2>
+                <h2><i class="fas fa-clipboard-check"></i> Terms of Use</h2>
                 <div class="term-item">
                     <input type="checkbox" id="term1">
-                    <label for="term1"><i class="fas fa-user-check"></i> Tôi từ 18 tuổi trở lên</label>
+                    <label for="term1">
+                        <i class="fas fa-user-check"></i> I am 18 years or older and agree to follow community guidelines
+                    </label>
                 </div>
                 <div class="term-item">
                     <input type="checkbox" id="term2">
-                    <label for="term2"><i class="fas fa-user-secret"></i> Tôi sẽ không chia sẻ thông tin cá nhân nhạy cảm</label>
-                </div>
-                <div class="term-item">
-                    <input type="checkbox" id="term3">
-                    <label for="term3"><i class="fas fa-shield-alt"></i> Tôi sẽ không gửi nội dung không phù hợp hoặc quấy rối</label>
-                </div>
-                <div class="term-item">
-                    <input type="checkbox" id="term4">
-                    <label for="term4"><i class="fas fa-file-contract"></i> Tôi đồng ý với các <a href="#" class="terms-link">điều khoản dịch vụ</a></label>
+                    <label for="term2">
+                        <i class="fas fa-file-contract"></i> I agree to the 
+                        <a href="terms.html" class="terms-link">terms of service</a> and 
+                        <a href="privacy.html">privacy policy</a>
+                    </label>
                 </div>
             </section>
 
             <section class="guidelines">
-                <h2><i class="fas fa-exclamation-triangle"></i> Hướng dẫn an toàn</h2>
+                <h2><i class="fas fa-exclamation-triangle"></i> Safety Guidelines</h2>
                 <ul>
-                    <li><i class="fas fa-user-lock"></i> Không chia sẻ thông tin cá nhân</li>
-                    <li><i class="fas fa-heart"></i> Tôn trọng người khác</li>
-                    <li><i class="fas fa-flag"></i> Báo cáo hành vi không phù hợp</li>
-                    <li><i class="fas fa-image"></i> Cẩn thận khi chia sẻ hình ảnh</li>
+                    <li><i class="fas fa-user-lock"></i> Don't share personal information</li>
+                    <li><i class="fas fa-heart"></i> Respect others</li>
+                    <li><i class="fas fa-flag"></i> Report inappropriate behavior</li>
+                    <li><i class="fas fa-image"></i> Be careful with sharing images</li>
                 </ul>
             </section>
 
-            <button id="startChat" class="start-button" disabled>
-                <i class="fas fa-play"></i> Bắt đầu chat
-            </button>
+            <section class="chat-options">
+                <h2><i class="fas fa-comments"></i> Choose Chat Type</h2>
+                <div class="options-container">
+                    <button id="startVideoChat" class="option-button" disabled>
+                        <i class="fas fa-video"></i>
+                        <span>Video Chat</span>
+                        <small>Video and audio chat with strangers</small>
+                    </button>
+                    <button id="startTextChat" class="option-button" disabled>
+                        <i class="fas fa-comment-dots"></i>
+                        <span>Text Chat</span>
+                        <small>Text messages only</small>
+                    </button>
+                </div>
+            </section>
         </main>
 
         <footer>
-            <p>&copy; 2024 Chat Ngẫu Nhiên. Tất cả quyền được bảo lưu.</p>
+            <nav class="footer-links">
+                <a href="/about">About Omegle</a>
+                <a href="privacy.html">Privacy Policy</a>
+                <a href="terms.html">Terms of Service</a>
+                <a href="/contact">Contact Us</a>
+            </nav>
+            <p>&copy; 2024 Omegle. All rights reserved.</p>
         </footer>
     </div>
 
@@ -88,6 +128,24 @@
             </div>
         </div>
     </div>
+
+    <!-- Schema.org markup -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Omegle",
+        "description": "Free random video chat platform to meet and talk with strangers worldwide",
+        "url": "https://your-domain.com",
+        "applicationCategory": "Communication",
+        "operatingSystem": "All",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        }
+    }
+    </script>
 
     <script src="home.js"></script>
 </body>

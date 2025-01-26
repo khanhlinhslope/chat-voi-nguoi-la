@@ -21,6 +21,23 @@ const toggleAudioBtn = document.getElementById('toggleAudio');
 const statusIndicator = document.querySelector('.status-indicator');
 const statusText = document.querySelector('.status-text');
 const currentUserIdDisplay = document.getElementById('currentUserId');
+const chatMode = localStorage.getItem('chatMode') || 'text';
+const videoContainer = document.querySelector('.video-container');
+
+// Thêm biến toàn cục
+let autoConnectInterval;
+let isAutoConnecting = false;
+
+// Thêm biến để theo dõi thời gian kết nối
+let lastConnectionTime = 0;
+
+// Thêm biến cho report và block
+let reportModal = document.getElementById('reportModal');
+let reportButton = document.getElementById('reportButton');
+let blockButton = document.getElementById('blockButton');
+let submitReport = document.getElementById('submitReport');
+let closeReportModal = reportModal.querySelector('.close');
+let blockedUsers = new Set(JSON.parse(localStorage.getItem('blockedUsers') || '[]'));
 
 // Thêm hàm lấy thông tin TURN server từ Twilio
 async function getTurnCredentials() {
@@ -54,6 +71,12 @@ const configuration = {
 
 // Khởi tạo media stream
 async function initializeMedia() {
+    if (chatMode === 'text') {
+        // Ẩn phần video nếu là chat text
+        videoContainer.style.display = 'none';
+        return true;
+    }
+
     try {
         localStream = await navigator.mediaDevices.getUserMedia({
             video: true,
@@ -131,21 +154,21 @@ async function initializePeerConnection() {
         console.log('ICE connection state:', peerConnection.iceConnectionState);
         switch(peerConnection.iceConnectionState) {
             case 'checking':
-                addSystemMessage('Đang thiết lập kết nối video...');
+                addSystemMessage('Setting up video connection...');
                 break;
             case 'connected':
-                addSystemMessage('Kết nối video thành công!');
+                addSystemMessage('Video connection successful!');
                 // Đảm bảo remote video được phát
                 if (remoteVideo.srcObject && remoteVideo.paused) {
                     remoteVideo.play().catch(e => console.error('Error playing remote video:', e));
                 }
                 break;
             case 'failed':
-                addSystemMessage('Kết nối video thất bại. Đang thử lại...');
+                addSystemMessage('Video connection failed. Retrying...');
                 restartIce();
                 break;
             case 'disconnected':
-                addSystemMessage('Kết nối video bị gián đoạn. Đang kết nối lại...');
+                addSystemMessage('Disconnected');
                 break;
         }
     };
@@ -191,50 +214,25 @@ async function restartIce() {
     }
 }
 
-// Thêm UI cho kết nối theo ID
-function addConnectByIdUI() {
-    const header = document.querySelector('.header');
-    const idContainer = document.createElement('div');
-    idContainer.className = 'id-container';
-    idContainer.innerHTML = `
-        <div class="user-id">ID của bạn: <span id="currentUserId">-</span></div>
-        <div class="connect-form">
-            <input type="text" id="targetIdInput" placeholder="Nhập ID người muốn kết nối">
-            <button id="connectToId">Kết nối</button>
-        </div>
-    `;
-    header.appendChild(idContainer);
-
-    // Thêm sự kiện cho nút kết nối
-    document.getElementById('connectToId').addEventListener('click', () => {
-        const targetId = document.getElementById('targetIdInput').value.trim();
-        if (targetId) {
-            socket.send(JSON.stringify({
-                type: 'connectTo',
-                targetId: targetId
-            }));
-        }
-    });
-}
-
 // Hàm cập nhật trạng thái kết nối
-function updateConnectionStatus(status, message) {
+function updateConnectionStatus(status) {
     switch(status) {
         case 'connecting':
             statusIndicator.style.backgroundColor = '#ffd700'; // Màu vàng
-            statusText.textContent = 'Đang kết nối...';
+            statusText.textContent = 'Connecting...';
             break;
         case 'connected':
             statusIndicator.style.backgroundColor = '#4CAF50'; // Màu xanh
-            statusText.textContent = 'Đã kết nối';
+            statusText.textContent = 'Connected';
+            lastConnectionTime = Date.now(); // Cập nhật thời gian kết nối
             break;
         case 'disconnected':
             statusIndicator.style.backgroundColor = '#ff4444'; // Màu đỏ
-            statusText.textContent = message || 'Mất kết nối';
+            statusText.textContent = 'Disconnected';
             break;
         case 'waiting':
             statusIndicator.style.backgroundColor = '#2196F3'; // Màu xanh dương
-            statusText.textContent = 'Đang chờ người lạ...';
+            statusText.textContent = 'Waiting for stranger...';
             break;
     }
 }
@@ -242,19 +240,15 @@ function updateConnectionStatus(status, message) {
 // Cập nhật hàm connectWebSocket
 function connectWebSocket() {
     updateConnectionStatus('connecting');
-    // Tự động xác định WebSocket URL dựa trên current host
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.hostname === 'localhost' ? 
-        `${window.location.hostname}:3000` : 
-        window.location.host;
-    const wsUrl = `${protocol}//${host}`;
+    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const wsUrl = `${protocol}${window.location.host}`;
     socket = new WebSocket(wsUrl);
     
     socket.onopen = async () => {
         console.log('Đã kết nối với máy chủ');
         updateConnectionStatus('waiting');
         const mediaInitialized = await initializeMedia();
-        if (mediaInitialized) {
+        if (mediaInitialized && chatMode === 'video') {
             initializePeerConnection();
         }
     };
@@ -314,7 +308,7 @@ function connectWebSocket() {
                 }
             } else if (message.type === 'system') {
                 addSystemMessage(message.text);
-                if (message.text === 'Đã kết nối với người lạ!') {
+                if (message.text === 'Connected with a stranger!') {
                     updateConnectionStatus('connected');
                     // Tạo offer khi kết nối với người lạ
                     try {
@@ -330,11 +324,19 @@ function connectWebSocket() {
                     } catch (e) {
                         console.error('Lỗi khi tạo offer:', e);
                     }
-                } else if (message.text === 'Đang chờ người lạ...') {
+                } else if (message.text === 'Waiting for a stranger...') {
                     updateConnectionStatus('waiting');
                 }
             } else if (message.type === 'message') {
                 addMessage(message.text, 'received');
+            } else if (message.type === 'connected') {
+                const partnerId = message.partnerId;
+                if (blockedUsers.has(partnerId)) {
+                    addSystemMessage('Blocked user detected. Finding new partner...');
+                    findNewPartner();
+                    return;
+                }
+                currentPartnerId = partnerId;
             }
         } catch (e) {
             console.error('Error handling message:', e);
@@ -343,14 +345,14 @@ function connectWebSocket() {
     
     socket.onclose = () => {
         console.log('Mất kết nối với máy chủ');
-        updateConnectionStatus('disconnected', 'Mất kết nối với máy chủ');
-        addSystemMessage('Mất kết nối với máy chủ');
+        updateConnectionStatus('disconnected');
+        addSystemMessage('Lost connection to server');
     };
 
     socket.onerror = (error) => {
         console.error('WebSocket error:', error);
-        updateConnectionStatus('disconnected', 'Có lỗi kết nối');
-        addSystemMessage('Có lỗi kết nối');
+        updateConnectionStatus('disconnected');
+        addSystemMessage('Connection error');
     };
 }
 
@@ -367,6 +369,41 @@ function addMessage(text, type) {
 function addSystemMessage(text) {
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message', 'system');
+    
+    // Translate messages
+    switch(text) {
+        case 'Đang kết nối...':
+            text = 'Connecting...';
+            break;
+        case 'Đã kết nối với người lạ!':
+            text = 'Connected with a stranger!';
+            break;
+        case 'Người lạ đã ngắt kết nối':
+            text = 'Stranger has disconnected';
+            break;
+        case 'Đang chờ người lạ...':
+            text = 'Waiting for a stranger...';
+            break;
+        case 'Mất kết nối với máy chủ':
+            text = 'Lost connection to server';
+            break;
+        case 'Có lỗi kết nối':
+            text = 'Connection error';
+            break;
+        case 'Đang tìm người lạ...':
+            text = 'Looking for a stranger...';
+            break;
+        case 'Kết nối video thành công!':
+            text = 'Video connection successful!';
+            break;
+        case 'Kết nối video thất bại. Đang thử lại...':
+            text = 'Video connection failed. Retrying...';
+            break;
+        case 'Đang thiết lập kết nối video...':
+            text = 'Setting up video connection...';
+            break;
+    }
+    
     messageDiv.textContent = text;
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -382,80 +419,44 @@ function sendMessage() {
     }
 }
 
-// Tìm người chat mới
-function findNewPartner() {
-    if (peerConnection) {
-        peerConnection.close();
+// Thêm hàm xử lý auto connect
+function toggleAutoConnect() {
+    const autoConnectBtn = document.getElementById('autoConnectBtn');
+    const statusBadge = autoConnectBtn.querySelector('.status-badge');
+    
+    if (!isAutoConnecting) {
+        // Bắt đầu auto connect
+        isAutoConnecting = true;
+        autoConnectBtn.classList.add('active');
+        statusBadge.textContent = 'On';
+        
+        // Tìm người mới ngay lập tức
+        findNewPartner();
+        
+        // Thiết lập interval để tự động tìm người mới
+        autoConnectInterval = setInterval(() => {
+            if (socket.readyState === WebSocket.OPEN) {
+                const currentStatus = statusText.textContent;
+                // Chỉ tìm người mới nếu đang ở trạng thái chờ hoặc đã kết nối quá lâu
+                if (currentStatus === 'Waiting for stranger...' || 
+                    currentStatus === 'Connected' && Date.now() - lastConnectionTime > 30000) {
+                    findNewPartner();
+                }
+            }
+        }, 10000); // Kiểm tra mỗi 10 giây
+        
+        addSystemMessage('Auto Connect is now ON. Will search for new partners automatically.');
+    } else {
+        // Dừng auto connect
+        isAutoConnecting = false;
+        autoConnectBtn.classList.remove('active');
+        statusBadge.textContent = 'Off';
+        clearInterval(autoConnectInterval);
+        addSystemMessage('Auto Connect is now OFF.');
     }
-    if (socket) {
-        socket.close();
-    }
-    chatMessages.innerHTML = '';
-    remoteVideo.srcObject = null;
-    updateConnectionStatus('connecting');
-    addSystemMessage('Đang tìm người lạ...');
-    connectWebSocket();
 }
 
-// Thêm các event listeners
-sendButton.addEventListener('click', sendMessage);
-messageInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        sendMessage();
-    }
-});
-nextButton.addEventListener('click', findNewPartner);
-
-// Thêm styles cho UI mới
-const style = document.createElement('style');
-style.textContent = `
-.id-container {
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.user-id {
-    margin-bottom: 10px;
-    font-weight: bold;
-}
-
-.connect-form {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-}
-
-#targetIdInput {
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    width: 200px;
-}
-
-.copy-id-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 5px 10px;
-    margin-left: 10px;
-    color: var(--primary-color);
-    transition: all 0.3s ease;
-}
-
-.copy-id-btn:hover {
-    color: var(--secondary-color);
-    transform: scale(1.1);
-}
-
-.user-id {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-`;
-document.head.appendChild(style);
-
-// Khởi tạo UI khi trang được tải
+// Thêm event listener cho nút auto connect
 document.addEventListener('DOMContentLoaded', () => {
     // Kiểm tra xem người dùng đã đồng ý điều khoản chưa
     if (localStorage.getItem('termsAccepted') !== 'true') {
@@ -463,7 +464,100 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // Tiếp tục với code khởi tạo chat
-    addConnectByIdUI();
+    // Thêm sự kiện cho nút kết nối
+    document.getElementById('connectToId').addEventListener('click', () => {
+        const targetId = document.getElementById('targetIdInput').value.trim();
+        if (targetId) {
+            socket.send(JSON.stringify({
+                type: 'connectTo',
+                targetId: targetId
+            }));
+        }
+    });
+
+    // Kết nối WebSocket
     connectWebSocket();
+
+    // Thêm event listener cho nút auto connect
+    const autoConnectBtn = document.getElementById('autoConnectBtn');
+    autoConnectBtn.addEventListener('click', toggleAutoConnect);
+    
+    // Dừng auto connect khi rời trang
+    window.addEventListener('beforeunload', () => {
+        if (isAutoConnecting) {
+            clearInterval(autoConnectInterval);
+        }
+    });
+});
+
+// Thêm vào cuối file script.js
+document.querySelector('.logo').addEventListener('click', () => {
+    window.location.href = './index.html';
+});
+
+// Cập nhật hàm findNewPartner
+function findNewPartner() {
+    if (peerConnection) {
+        peerConnection.close();
+    }
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.close();
+    }
+    chatMessages.innerHTML = '';
+    remoteVideo.srcObject = null;
+    updateConnectionStatus('connecting');
+    addSystemMessage(isAutoConnecting ? 'Auto searching for a new stranger...' : 'Looking for a stranger...');
+    connectWebSocket();
+}
+
+// Xử lý report
+reportButton.addEventListener('click', () => {
+    if (!currentPartnerId) {
+        addSystemMessage('No user to report');
+        return;
+    }
+    reportModal.style.display = 'block';
+});
+
+closeReportModal.addEventListener('click', () => {
+    reportModal.style.display = 'none';
+});
+
+submitReport.addEventListener('click', () => {
+    const reason = document.querySelector('input[name="reportReason"]:checked')?.value;
+    const description = document.getElementById('reportDescription').value;
+    
+    if (!reason) {
+        alert('Please select a reason for reporting');
+        return;
+    }
+
+    // Gửi report lên server
+    socket.send(JSON.stringify({
+        type: 'report',
+        reportData: {
+            targetId: currentPartnerId,
+            reason: reason,
+            description: description
+        }
+    }));
+
+    addSystemMessage('Report submitted. Thank you for helping keep our community safe.');
+    reportModal.style.display = 'none';
+    
+    // Tự động next sau khi report
+    findNewPartner();
+});
+
+// Xử lý block
+blockButton.addEventListener('click', () => {
+    if (!currentPartnerId) {
+        addSystemMessage('No user to block');
+        return;
+    }
+
+    blockedUsers.add(currentPartnerId);
+    localStorage.setItem('blockedUsers', JSON.stringify([...blockedUsers]));
+    addSystemMessage(`User ${currentPartnerId} has been blocked`);
+    findNewPartner();
 }); 

@@ -5,6 +5,18 @@ const twilio = require('twilio');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Middleware để redirect HTTP sang HTTPS trên production
+if (isProduction) {
+    app.use((req, res, next) => {
+        if (req.header('x-forwarded-proto') !== 'https') {
+            res.redirect(`https://${req.header('host')}${req.url}`);
+        } else {
+            next();
+        }
+    });
+}
 
 // Phục vụ static files
 app.use(express.static(path.join(__dirname, './')));
@@ -148,7 +160,7 @@ wss.on('connection', (socket) => {
     }
 
     // Xử lý tin nhắn
-    socket.on('message', (message) => {
+    socket.on('message', async (message) => {
         try {
             const parsedMessage = JSON.parse(message);
             console.log(`Nhận tin nhắn từ ${userId}:`, parsedMessage);
@@ -156,6 +168,11 @@ wss.on('connection', (socket) => {
             if (parsedMessage.type === 'connectTo') {
                 findPartner(parsedMessage.targetId);
                 return;
+            }
+
+            if (parsedMessage.type === 'report') {
+                const reportData = parsedMessage.reportData;
+                console.log('Report received:', reportData);
             }
 
             const partner = activeConnections.get(socket);
@@ -221,4 +238,10 @@ app.get('/get-turn-credentials', (req, res) => {
         console.error('Lỗi khi lấy thông tin TURN server:', err);
         res.status(500).json({ error: 'Không thể lấy thông tin TURN server' });
     });
-}); 
+});
+
+// Cập nhật WebSocket URL trong script.js
+const wsProtocol = isProduction ? 'wss://' : 'ws://';
+const wsUrl = isProduction ? 
+    `${wsProtocol}${req.headers.host}` : 
+    `${wsProtocol}localhost:${PORT}`; 

@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const startButton = document.getElementById('startChat');
+    const videoButton = document.getElementById('startVideoChat');
+    const textButton = document.getElementById('startTextChat');
     const checkboxes = document.querySelectorAll('.term-item input[type="checkbox"]');
     const modal = document.getElementById('termsModal');
     const closeBtn = document.querySelector('.close');
@@ -13,12 +14,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Kiểm tra trạng thái các checkbox
     function checkTerms() {
         const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
-        startButton.disabled = !allChecked;
+        videoButton.disabled = !allChecked;
+        textButton.disabled = !allChecked;
         
         if (allChecked) {
-            startButton.classList.add('ready');
+            videoButton.classList.add('ready');
+            textButton.classList.add('ready');
         } else {
-            startButton.classList.remove('ready');
+            videoButton.classList.remove('ready');
+            textButton.classList.remove('ready');
         }
     }
 
@@ -33,20 +37,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Xử lý khi nhấn nút bắt đầu
-    startButton.addEventListener('click', () => {
-        startButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang chuyển hướng...';
+    // Xử lý khi nhấn nút chat video
+    videoButton.addEventListener('click', () => {
         localStorage.setItem('termsAccepted', 'true');
+        localStorage.setItem('chatMode', 'video');
+        startChat(videoButton);
+    });
+
+    // Xử lý khi nhấn nút chat text
+    textButton.addEventListener('click', () => {
+        localStorage.setItem('termsAccepted', 'true');
+        localStorage.setItem('chatMode', 'text');
+        startChat(textButton);
+    });
+
+    function startChat(button) {
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redirecting...';
         setTimeout(() => {
             window.location.href = './chat.html';
         }, 1000);
-    });
+    }
 
     // Modal điều khoản
     termsLink.addEventListener('click', (e) => {
         e.preventDefault();
-        modal.style.display = 'block';
-        document.body.style.overflow = 'hidden';
+        window.location.href = 'terms.html';
     });
 
     closeBtn.addEventListener('click', () => {
@@ -77,5 +93,9 @@ document.addEventListener('DOMContentLoaded', () => {
         item.addEventListener('mouseleave', () => {
             item.style.transform = 'scale(1)';
         });
+    });
+
+    document.querySelector('.logo').addEventListener('click', () => {
+        window.location.href = './index.html';
     });
 }); 

@@ -10,13 +10,20 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">
-                <i class="fas fa-comments"></i>
-                <h1>Chat Ngẫu Nhiên</h1>
+            <div class="header-left">
+                <img src="images/logo-omegle.png" alt="Omegle Logo" class="logo-image">
+                <div class="logo-text">Talk to Strangers!</div>
+                <div class="user-status">
+                    <span class="status-indicator"></span>
+                    <span class="status-text">Connecting...</span>
+                </div>
             </div>
-            <div class="user-status">
-                <span class="status-indicator"></span>
-                <span class="status-text">Đang kết nối...</span>
+            <div class="connect-form">
+                <span id="currentUserId" class="user-id">Your ID: ...</span>
+                <input type="text" id="targetIdInput" placeholder="Enter ID to connect">
+                <button id="connectToId">
+                    <i class="fas fa-link"></i> Connect
+                </button>
             </div>
         </div>
         
@@ -48,39 +55,75 @@
             </div>
             
             <div class="chat-container" id="chatContainer">
-                <div class="chat-header">
-                    <div class="chat-info">
-                        <span id="currentUserId" class="user-id">ID: ...</span>
-                        <div class="connect-form">
-                            <input type="text" id="targetIdInput" placeholder="Nhập ID người muốn kết nối">
-                            <button id="connectToId">
-                                <i class="fas fa-link"></i> Kết nối
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="chat-messages" id="chatMessages">
                     <div class="welcome-message">
                         <i class="fas fa-hand-wave"></i>
-                        <p>Chào mừng bạn đến với Chat Ngẫu Nhiên!</p>
+                        <p>Welcome to Omegle!</p>
                     </div>
                 </div>
                 
                 <div class="chat-input">
                     <div class="input-wrapper">
-                        <input type="text" id="messageInput" placeholder="Nhập tin nhắn...">
+                        <input type="text" id="messageInput" placeholder="Type a message...">
                         <button id="sendButton">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
-                    <button id="nextButton" class="next-button">
-                        <i class="fas fa-random"></i> Người tiếp theo
-                    </button>
+                    <div class="chat-controls">
+                        <button id="reportButton" class="control-button report">
+                            <i class="fas fa-flag"></i> Report User
+                        </button>
+                        <button id="blockButton" class="control-button block">
+                            <i class="fas fa-ban"></i> Block User
+                        </button>
+                        <button id="autoConnectBtn" class="control-button">
+                            <i class="fas fa-sync"></i> Auto Connect
+                            <span class="status-badge">Off</span>
+                        </button>
+                        <button id="nextButton" class="next-button">
+                            <i class="fas fa-random"></i> Next Stranger
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Thêm modal báo cáo -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Report User</h2>
+            <div class="report-form">
+                <h3>Select reason for report:</h3>
+                <div class="report-options">
+                    <label>
+                        <input type="radio" name="reportReason" value="inappropriate">
+                        Inappropriate Content
+                    </label>
+                    <label>
+                        <input type="radio" name="reportReason" value="harassment">
+                        Harassment
+                    </label>
+                    <label>
+                        <input type="radio" name="reportReason" value="spam">
+                        Spam
+                    </label>
+                    <label>
+                        <input type="radio" name="reportReason" value="underage">
+                        Underage User
+                    </label>
+                    <label>
+                        <input type="radio" name="reportReason" value="other">
+                        Other
+                    </label>
+                </div>
+                <textarea id="reportDescription" placeholder="Provide additional details (optional)"></textarea>
+                <button id="submitReport" class="submit-button">Submit Report</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html> 
